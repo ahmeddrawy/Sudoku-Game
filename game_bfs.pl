@@ -16,7 +16,7 @@ grid([
 	]).
 
 play(FinalState):-
-	grid(G),getAllEmpty(G,E) ,play(E,[G],[],FinalState).
+	grid(G),play([G],[],FinalState).
 getSuccessor(CurrentState,EmptyCell,Open , Closed, Element):-
 	between(1,9,A),editGridCell(EmptyCell , A,CurrentState , Element),
 	safeState(Element),not(member(Element , Open)) ,
@@ -24,24 +24,27 @@ getSuccessor(CurrentState,EmptyCell,Open , Closed, Element):-
 getAllSuccessor(CurrentState ,EmptyCell , Open , Closed , List):-
 	findall(Element , getSuccessor(CurrentState , EmptyCell, Open,Closed,Element) , List).
 %% play(empty , currentState,FinalState)
-play(_,[],_,_):-fail,!.
-play([] ,[H|_],_,FinalState):-
-	printGrid(H),FinalState is H,!.
-play([EmptyCell|NewEmpty] ,[H|T] , Closed , FinalState):-
-	
-		%% else get all getAllSuccessor
-		%% write(5),put(10),
-		getAllSuccessor(H,EmptyCell,[H|T] , Closed , ListOfSuccessors),
-		append(T,ListOfSuccessors,NewOpen),
-		append(Closed,H,NewCLosed),
-	%% printGrid(NewState).
-		play(NewEmpty,NewOpen,NewCLosed,FinalState))
+play([],_,_):-fail,!.
+%% play([] ,[CurrentState|_],_,CurrentState):-
+	%% printGrid(CurrentState),!.
+play([H|T] , Closed , FinalState):-
+	getAllEmpty(H,EmptyList),
+	(
+			is_empty(EmptyList) ->
+				(FinalState = H,printGrid(H) , !)
+			;(
+				EmptyList = [EmptyCell|_],
+				%% else get all getAllSuccessor
+				getAllSuccessor(H,EmptyCell,[H|T] , Closed , ListOfSuccessors),
+				append(T,ListOfSuccessors,NewOpen),
+				append(Closed,H,NewCLosed),
+			%% printGrid(NewState).
+				play(NewOpen,NewCLosed,FinalState)
+			)
 
-	.
+	).
 
-is_empty(List):-
-  length(List, X),
-  X = 0.
+is_empty(List):- not(member(_,List)).
 
 %--------------done---------------------
 printPair([X,Y]):-
